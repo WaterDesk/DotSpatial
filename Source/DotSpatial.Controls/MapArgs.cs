@@ -4,6 +4,7 @@
 using System;
 using System.Drawing;
 using DotSpatial.Data;
+using System.Collections.Generic;
 
 namespace DotSpatial.Controls
 {
@@ -35,7 +36,49 @@ namespace DotSpatial.Controls
         {
             ImageRectangle = bufferRectangle;
             GeographicExtents = bufferEnvelope;
-            Device = g;
+            _gpBB = g;
+            _ptBuffer = new Dictionary<ulong, int>();
+            _strBuffer = new Dictionary<ulong, int>();
+        }
+
+        #endregion
+
+        #region Member
+
+        /// <summary>
+        /// Add pointer to buffer
+        /// </summary>
+        /// <param name="x">pos x</param>
+        /// <param name="y">pos y</param>
+        /// <returns>can draw point</returns>
+        public bool AddPointPos(int x, int y)
+        {
+            x = x / 3;
+            y = y / 3;
+            ulong key = (((ulong)(uint)(x / 3)) << 32) | ((ulong)(uint)(y / 3));
+            if (_ptBuffer.ContainsKey(key))
+            {
+                return false;
+            }
+
+            _ptBuffer.Add(key, 0);
+
+            return true;
+        }
+
+        public bool AddStringPos(int x, int y)
+        {
+            x = x / 3;
+            y = y / 3;
+            ulong key = (((ulong)(uint)(x / 10)) << 32) | ((ulong)(uint)(y / 10));
+            if (_strBuffer.ContainsKey(key))
+            {
+                return false;
+            }
+
+            _strBuffer.Add(key, 0);
+
+            return true;
         }
 
         #endregion
@@ -45,7 +88,7 @@ namespace DotSpatial.Controls
         /// <summary>
         /// Gets an optional parameter that specifies a device to use instead of the normal buffers.
         /// </summary>
-        public Graphics Device { get; }
+        public Graphics Device { get{ return _gpBB;}}
 
         /// <summary>
         /// Gets the Dx
@@ -77,6 +120,17 @@ namespace DotSpatial.Controls
         /// </summary>
         public double MinX => GeographicExtents.MinX;
 
+        public Graphics gpBB { get{ return _gpBB;} set{ _gpBB = value;} }
+
+        public Graphics gpBF { get; set;}
+
+        private Dictionary<ulong, int> _ptBuffer;
+        private Dictionary<ulong, int> _strBuffer;
+
+        private Graphics _gpBB;
+
         #endregion
+
+        
     }
 }

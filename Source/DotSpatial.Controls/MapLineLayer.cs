@@ -11,6 +11,7 @@ using System.Windows.Forms;
 using DotSpatial.Data;
 using DotSpatial.Symbology;
 using GeoAPI.Geometries;
+using System.Data;
 
 namespace DotSpatial.Controls
 {
@@ -339,7 +340,7 @@ namespace DotSpatial.Controls
 
             AddLineStringToPath(path, args, ls.EnvelopeInternal.ToExtent(), points, clipRect);
         }
-
+        private static Font _font = new Font("ËÎÌו", 20);
         /// <summary>
         /// Adds the line string to the path.
         /// </summary>
@@ -348,7 +349,7 @@ namespace DotSpatial.Controls
         /// <param name="shpx">Shape range of the line string.</param>
         /// <param name="args">The map arguments.</param>
         /// <param name="clipRect">The clip rectangle.</param>
-        internal static void BuildLineString(GraphicsPath path, double[] vertices, ShapeRange shpx, MapArgs args, Rectangle clipRect)
+        internal static void BuildLineString(GraphicsPath path, double[] vertices, ShapeRange shpx, MapArgs args, Rectangle clipRect, DataRow dataRow)
         {
             double minX = args.MinX;
             double maxY = args.MaxY;
@@ -366,6 +367,12 @@ namespace DotSpatial.Controls
                     var pt = new[] { (vertices[i * 2] - minX) * dx, (maxY - vertices[(i * 2) + 1]) * dy };
                     points.Add(pt);
                 }
+
+                int tx = (int)(points[0][0] + points[1][0]) / 2;
+                int ty = (int)(points[0][1] + points[1][1]) / 2;
+
+                if (args.AddStringPos(tx, ty))
+                    args.gpBF.DrawString(dataRow[0].ToString(), _font, Brushes.Red, tx, ty);
 
                 AddLineStringToPath(path, args, shpx.Extent, points, clipRect);
             }
@@ -499,14 +506,16 @@ namespace DotSpatial.Controls
             if (selected && !DrawnStatesNeeded) return;
 
             Graphics g = e.Device ?? Graphics.FromImage(BackBuffer);
+
             var indiceList = indices as IList<int> ?? indices.ToList();
 
             Action<GraphicsPath, Rectangle, IEnumerable<int>> drawFeature = (graphPath, clipRect, features) =>
             {
                 foreach (int shp in features)
                 {
+                    DataRow dataRow =  DataSet.Features[shp].DataRow;
                     ShapeRange shape = DataSet.ShapeIndices[shp];
-                    BuildLineString(graphPath, DataSet.Vertex, shape, e, clipRect);
+                    BuildLineString(graphPath, DataSet.Vertex, shape, e, clipRect, dataRow);
                 }
             };
 

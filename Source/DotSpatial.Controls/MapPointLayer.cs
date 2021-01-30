@@ -11,6 +11,7 @@ using System.Windows.Forms;
 using DotSpatial.Data;
 using DotSpatial.Symbology;
 using GeoAPI.Geometries;
+using System.Data;
 
 namespace DotSpatial.Controls
 {
@@ -417,6 +418,7 @@ namespace DotSpatial.Controls
             if (selected && (!DrawnStatesNeeded || !DrawnStates.Any(_ => _.Selected))) return; // there are no selected features
 
             Graphics g = e.Device ?? Graphics.FromImage(BackBuffer);
+
             Matrix origTransform = g.Transform;
             FeatureType featureType = DataSet.FeatureType;
 
@@ -430,9 +432,11 @@ namespace DotSpatial.Controls
 
                 foreach (int index in indices)
                 {
+                    DataRow dataRow = DataSet.Features[index].DataRow;
+
                     if (featureType == FeatureType.Point)
                     {
-                        DrawPoint(vertices[index * 2], vertices[(index * 2) + 1], e, ps, g, origTransform);
+                        DrawPoint(vertices[index * 2], vertices[(index * 2) + 1], e, ps, g, origTransform, dataRow);
                     }
                     else
                     {
@@ -440,7 +444,7 @@ namespace DotSpatial.Controls
                         ShapeRange range = DataSet.ShapeIndices[index];
                         for (int i = range.StartIndex; i <= range.EndIndex(); i++)
                         {
-                            DrawPoint(vertices[i * 2], vertices[(i * 2) + 1], e, ps, g, origTransform);
+                            DrawPoint(vertices[i * 2], vertices[(i * 2) + 1], e, ps, g, origTransform, dataRow);
                         }
                     }
                 }
@@ -471,16 +475,17 @@ namespace DotSpatial.Controls
                     IPointSymbolizer ps = selected ? pc.SelectionSymbolizer : pc.Symbolizer;
                     if (ps == null) continue;
 
+                    DataRow dataRow = DataSet.Features[index].DataRow;
                     if (featureType == FeatureType.Point)
                     {
-                        DrawPoint(vertices[index * 2], vertices[(index * 2) + 1], e, ps, g, origTransform);
+                        DrawPoint(vertices[index * 2], vertices[(index * 2) + 1], e, ps, g, origTransform, dataRow);
                     }
                     else
                     {
                         ShapeRange range = DataSet.ShapeIndices[index];
                         for (int i = range.StartIndex; i <= range.EndIndex(); i++)
                         {
-                            DrawPoint(vertices[i * 2], vertices[(i * 2) + 1], e, ps, g, origTransform);
+                            DrawPoint(vertices[i * 2], vertices[(i * 2) + 1], e, ps, g, origTransform, dataRow);
                         }
                     }
                 }
@@ -515,13 +520,15 @@ namespace DotSpatial.Controls
 
                 foreach (Coordinate c in feature.Geometry.Coordinates)
                 {
-                    DrawPoint(c.X, c.Y, e, ps, g, origTransform);
+                    DrawPoint(c.X, c.Y, e, ps, g, origTransform, feature.DataRow);
                 }
             }
 
             if (e.Device == null) g.Dispose();
             else g.Transform = origTransform;
         }
+
+        private static Font _font = new Font("ËÎÌו", 20);
 
         /// <summary>
         /// Draws a point at the given location.
@@ -532,18 +539,22 @@ namespace DotSpatial.Controls
         /// <param name="ps">PointSymbolizer with which the point gets drawn.</param>
         /// <param name="g">Graphics-Object that should be used by the PointSymbolizer.</param>
         /// <param name="origTransform">The original transformation that is used to position the point.</param>
-        private void DrawPoint(double ptX, double ptY, MapArgs e, IPointSymbolizer ps, Graphics g, Matrix origTransform)
+        private void DrawPoint(double ptX, double ptY, MapArgs e, IPointSymbolizer ps, Graphics g, Matrix origTransform, DataRow dataRow)
         {
             var pt = new Point
             {
                 X = Convert.ToInt32((ptX - e.MinX) * e.Dx),
                 Y = Convert.ToInt32((e.MaxY - ptY) * e.Dy)
             };
+            if (!e.AddPointPos(pt.X, pt.Y))
+                return;
             double scaleSize = ps.GetScale(e);
             Matrix shift = origTransform.Clone();
             shift.Translate(pt.X, pt.Y);
             g.Transform = shift;
             ps.Draw(g, scaleSize);
+            if (e.AddStringPos(pt.X, pt.Y))
+                e.gpBF.DrawString(dataRow[0].ToString(), _font, Brushes.Red, pt.X, pt.Y);
         }
 
         #endregion
