@@ -529,6 +529,7 @@ namespace DotSpatial.Controls
         }
 
         private static Font _font = new Font("ËÎÌו", 20);
+        private static PointSymbolizer _ps = new PointSymbolizer(Color.Red, DotSpatial.Symbology.PointShape.Ellipse, 8);
 
         /// <summary>
         /// Draws a point at the given location.
@@ -541,6 +542,10 @@ namespace DotSpatial.Controls
         /// <param name="origTransform">The original transformation that is used to position the point.</param>
         private void DrawPoint(double ptX, double ptY, MapArgs e, IPointSymbolizer ps, Graphics g, Matrix origTransform, DataRow dataRow)
         {
+            object ostyle = dataRow["__DRAW__"];
+            if (ostyle != null && ostyle is IPointSymbolizer)
+                ps = (IPointSymbolizer)ostyle;
+
             var pt = new Point
             {
                 X = Convert.ToInt32((ptX - e.MinX) * e.Dx),
@@ -552,9 +557,11 @@ namespace DotSpatial.Controls
             Matrix shift = origTransform.Clone();
             shift.Translate(pt.X, pt.Y);
             g.Transform = shift;
+
             ps.Draw(g, scaleSize);
-            if (e.AddStringPos(pt.X, pt.Y))
-                e.gpBF.DrawString(dataRow[0].ToString(), _font, Brushes.Red, pt.X, pt.Y);
+
+            //if (e.AddStringPos(pt.X, pt.Y))
+            //   e.gpBF.DrawString(dataRow[0].ToString(), _font, Brushes.Red, pt.X, pt.Y);
         }
 
         #endregion
