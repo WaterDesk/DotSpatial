@@ -542,10 +542,7 @@ namespace DotSpatial.Controls
         /// <param name="origTransform">The original transformation that is used to position the point.</param>
         private void DrawPoint(double ptX, double ptY, MapArgs e, IPointSymbolizer ps, Graphics g, Matrix origTransform, DataRow dataRow)
         {
-            object ostyle = dataRow["__DRAW__"];
-            if (ostyle != null && ostyle is IPointSymbolizer)
-                ps = (IPointSymbolizer)ostyle;
-
+ 
             var pt = new Point
             {
                 X = Convert.ToInt32((ptX - e.MinX) * e.Dx),
@@ -560,8 +557,13 @@ namespace DotSpatial.Controls
 
             ps.Draw(g, scaleSize);
 
-            //if (e.AddStringPos(pt.X, pt.Y))
-            //   e.gpBF.DrawString(dataRow[0].ToString(), _font, Brushes.Red, pt.X, pt.Y);
+            object ostyle = dataRow["__DRAW__"];
+            if (ostyle != null && ostyle is String)
+            {
+                if (e.AddStringPos(pt.X, pt.Y))
+                   e.gpBF.DrawString((String)ostyle, _font, Brushes.Red, pt.X, pt.Y);
+            }
+
         }
 
         #endregion

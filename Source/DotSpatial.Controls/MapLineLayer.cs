@@ -371,8 +371,12 @@ namespace DotSpatial.Controls
                 int tx = (int)(points[0][0] + points[1][0]) / 2;
                 int ty = (int)(points[0][1] + points[1][1]) / 2;
 
-                // if (args.AddStringPos(tx, ty))
-                //    args.gpBF.DrawString(dataRow[0].ToString(), _font, Brushes.Red, tx, ty);
+                object ostyle = dataRow["__DRAW__"];
+                if (ostyle != null && ostyle is string)
+                {
+                   if (args.AddStringPos(tx, ty))
+                        args.gpBF.DrawString((string)ostyle, _font, Brushes.Red, tx, ty);
+                }
 
                 AddLineStringToPath(path, args, shpx.Extent, points, clipRect);
             }
