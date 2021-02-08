@@ -15,6 +15,7 @@ using DotSpatial.Projections.Forms;
 using DotSpatial.Serialization;
 using DotSpatial.Symbology;
 using GeoAPI.Geometries;
+using System.Drawing.Text;
 
 namespace DotSpatial.Controls
 {
@@ -704,6 +705,14 @@ namespace DotSpatial.Controls
             gpBB.Clear(Color.Transparent);
             gpBF.Clear(Color.Transparent);
 
+            gpBB.SmoothingMode = SmoothingMode.HighSpeed;
+            gpBB.CompositingQuality = CompositingQuality.HighSpeed;
+            gpBB.TextRenderingHint = TextRenderingHint.SingleBitPerPixelGridFit;
+
+            gpBF.SmoothingMode = SmoothingMode.HighSpeed;
+            gpBF.CompositingQuality = CompositingQuality.HighSpeed;
+            gpBF.TextRenderingHint = TextRenderingHint.SingleBitPerPixelGridFit;
+
             Graphics bufferDevice = Graphics.FromImage(_backBuffer);
             MapArgs args = new MapArgs(ClientRectangle, ViewExtents, bufferDevice);
 
@@ -757,30 +766,32 @@ namespace DotSpatial.Controls
                 }
             }
 
-			// Then labels. Layers higher in the draw hierarchy should be drawn on top, and so should their labels.
-			// In other words the drawing order of labels is given precedence from top layer to bottom layer.
+            // Then labels. Layers higher in the draw hierarchy should be drawn on top, and so should their labels.
+            // In other words the drawing order of labels is given precedence from top layer to bottom layer.
             MapLabelLayer.ClearAllExistingLabels();
             for (int i = Layers.Count - 1; i >= 0; i--)
-			{
-			 	InitializeLabels(regions, args, Layers[i]);
-			}
+            {
+                InitializeLabels(regions, args, Layers[i]);
+            }
 
-			//// First draw all the vector content
+            //// First draw all the vector content
    //         var drawingLayers = DrawingLayers.OfType<IMapLayer>().Where(_ => _.VisibleAtExtent(ViewExtents)).ToList();
    //         for (int i = 0; i < 2; i++)
-			// {
-			// 	// first draw the normal colors and then the selection colors on top
-			// 	foreach (var layer in drawingLayers)
-			// 	{
-			// 		layer.DrawRegions(args, regions, i == 1);
-			// 	}
-			// }
+            // {
+            // 	// first draw the normal colors and then the selection colors on top
+            // 	foreach (var layer in drawingLayers)
+            // 	{
+            // 		layer.DrawRegions(args, regions, i == 1);
+            // 	}
+            // }
+
             bufferDevice.Clear(_parent?.BackColor ?? Color.White);
             bufferDevice.DrawImage(imgBF, 0, 0);
 
 
+
             if (_buffer != null && _buffer != _backBuffer)
-				_buffer.Dispose();
+                _buffer.Dispose();
 
             _buffer = _backBuffer;
             if (setView)

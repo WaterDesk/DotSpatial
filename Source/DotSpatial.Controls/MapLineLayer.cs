@@ -12,6 +12,7 @@ using DotSpatial.Data;
 using DotSpatial.Symbology;
 using GeoAPI.Geometries;
 using System.Data;
+using System.Diagnostics;
 
 namespace DotSpatial.Controls
 {
@@ -340,7 +341,7 @@ namespace DotSpatial.Controls
 
             AddLineStringToPath(path, args, ls.EnvelopeInternal.ToExtent(), points, clipRect);
         }
-        private static Font _font = new Font("ËÎÌו", 20);
+
         /// <summary>
         /// Adds the line string to the path.
         /// </summary>
@@ -349,7 +350,7 @@ namespace DotSpatial.Controls
         /// <param name="shpx">Shape range of the line string.</param>
         /// <param name="args">The map arguments.</param>
         /// <param name="clipRect">The clip rectangle.</param>
-        internal static void BuildLineString(GraphicsPath path, double[] vertices, ShapeRange shpx, MapArgs args, Rectangle clipRect, DataRow dataRow)
+        internal void BuildLineString(GraphicsPath path, double[] vertices, ShapeRange shpx, MapArgs args, Rectangle clipRect, DataRow dataRow)
         {
             double minX = args.MinX;
             double maxY = args.MaxY;
@@ -368,14 +369,39 @@ namespace DotSpatial.Controls
                     points.Add(pt);
                 }
 
-                int tx = (int)(points[0][0] + points[1][0]) / 2;
-                int ty = (int)(points[0][1] + points[1][1]) / 2;
-
-                object ostyle = dataRow["__DRAW__"];
-                if (ostyle != null && ostyle is string)
+                if(this.LabelRatio == 0 || this.MapFrame.ViewExtents.Width < this.LabelRatio)
                 {
-                   if (args.AddStringPos(tx, ty))
-                        args.gpBF.DrawString((string)ostyle, _font, Brushes.Red, tx, ty);
+                    object ostyle = dataRow["__DRAW__"];
+                    if (ostyle != null && ostyle is string)
+                    {
+                        int tx = (int)(points[0][0] + points[1][0]) / 2;
+                        int ty = (int)(points[0][1] + points[1][1]) / 2;
+                        double ddx = points[0][0] - points[1][0];
+                        double ddy = points[0][1] - points[1][1];
+                        double angle = Math.Atan2(ddy, ddx) * (180 / Math.PI);
+                        double delta = ddx * ddx + ddy * ddy;
+                        if(delta > 40 * 40)
+                        {
+                            if(angle >= -180 && angle <= -90)
+                            {
+                                angle = angle - 180;
+                            }
+                            else if(angle >= 90 && angle <= 180)
+                            {
+                                angle = angle - 180;
+                            }
+                            if (args.AddStringPos(tx, ty))
+                            {
+                                Matrix myMatrix = new Matrix();
+                                myMatrix.RotateAt((float)angle, new PointF(tx, ty));
+                                Matrix orgMatrix = args.gpBF.Transform;
+                                args.gpBF.Transform = myMatrix;
+
+                                args.gpBF.DrawString((string)ostyle, args.fontLabel, LabelColorBrush, tx, ty, args.LabelFormat);
+                                args.gpBF.Transform = orgMatrix;
+                            }
+                        }
+                    }
                 }
 
                 AddLineStringToPath(path, args, shpx.Extent, points, clipRect);
@@ -502,7 +528,7 @@ namespace DotSpatial.Controls
         private void Configure()
         {
             BufferRectangle = new Rectangle(0, 0, 3000, 3000);
-            ChunkSize = 50000;
+            ChunkSize = 5000000;
         }
 
         private void DrawFeatures(MapArgs e, IEnumerable<int> indices, bool selected)

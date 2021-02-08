@@ -39,6 +39,9 @@ namespace DotSpatial.Symbology
 
         #region Properties
 
+        Brush  LabelColorBrush{ get; set;}
+        double LabelRatio{ get; set;}
+
         /// <summary>
         /// Gets or sets the base FeatureSet.
         /// </summary>

@@ -12,6 +12,7 @@ using DotSpatial.Data;
 using DotSpatial.Symbology;
 using GeoAPI.Geometries;
 using System.Data;
+using System.Diagnostics;
 
 namespace DotSpatial.Controls
 {
@@ -223,6 +224,7 @@ namespace DotSpatial.Controls
         /// <param name="selected">Indicates whether to draw the normal colored features or the selection colored features.</param>
         public virtual void DrawFeatures(MapArgs args, List<IFeature> features, List<Rectangle> clipRectangles, bool useChunks, bool selected)
         {
+ 
             if (!useChunks || features.Count < ChunkSize)
             {
                 DrawFeatures(args, features, selected);
@@ -287,7 +289,7 @@ namespace DotSpatial.Controls
         /// <param name="selected">Indicates whether to draw the normal colored features or the selection colored features.</param>
         public virtual void DrawRegions(MapArgs args, List<Extent> regions, bool selected)
         {
-            // First determine the number of features we are talking about based on region.
+             // First determine the number of features we are talking about based on region.
             List<Rectangle> clipRects = args.ProjToPixel(regions);
             if (EditMode)
             {
@@ -409,7 +411,7 @@ namespace DotSpatial.Controls
 
         private void Configure()
         {
-            ChunkSize = 50000;
+            ChunkSize = 5000000;
         }
 
         // This draws the individual point features
@@ -498,6 +500,8 @@ namespace DotSpatial.Controls
         // This draws the individual point features
         private void DrawFeatures(MapArgs e, IEnumerable<IFeature> features, bool selected)
         {
+ 
+
             IDictionary<IFeature, IDrawnState> states = DrawingFilter.DrawnStates;
             if (states == null) return;
             if (selected && !states.Any(_ => _.Value.IsSelected)) return;
@@ -528,10 +532,7 @@ namespace DotSpatial.Controls
             else g.Transform = origTransform;
         }
 
-        private static Font _font = new Font("ËÎÌו", 20);
-        private static PointSymbolizer _ps = new PointSymbolizer(Color.Red, DotSpatial.Symbology.PointShape.Ellipse, 8);
-
-        /// <summary>
+         /// <summary>
         /// Draws a point at the given location.
         /// </summary>
         /// <param name="ptX">X-Coordinate of the point, that should be drawn.</param>
@@ -542,7 +543,7 @@ namespace DotSpatial.Controls
         /// <param name="origTransform">The original transformation that is used to position the point.</param>
         private void DrawPoint(double ptX, double ptY, MapArgs e, IPointSymbolizer ps, Graphics g, Matrix origTransform, DataRow dataRow)
         {
- 
+            
             var pt = new Point
             {
                 X = Convert.ToInt32((ptX - e.MinX) * e.Dx),
@@ -551,19 +552,21 @@ namespace DotSpatial.Controls
             if (!e.AddPointPos(pt.X, pt.Y))
                 return;
             double scaleSize = ps.GetScale(e);
-            Matrix shift = origTransform.Clone();
+            Matrix shift = origTransform.Clone();                                       
             shift.Translate(pt.X, pt.Y);
             g.Transform = shift;
 
             ps.Draw(g, scaleSize);
 
-            object ostyle = dataRow["__DRAW__"];
-            if (ostyle != null && ostyle is String)
+            if(this.LabelRatio == 0 || this.MapFrame.ViewExtents.Width < this.LabelRatio)
             {
-                if (e.AddStringPos(pt.X, pt.Y))
-                   e.gpBF.DrawString((String)ostyle, _font, Brushes.Red, pt.X, pt.Y);
+                object ostyle = dataRow["__DRAW__"];
+                if (ostyle != null && ostyle is string)
+                {
+                    if (e.AddPointLabel(pt.X, pt.Y, ((string)ostyle).Length))
+                       e.gpBF.DrawString((string)ostyle, e.fontLabel, LabelColorBrush, pt.X, pt.Y);
+                }
             }
-
         }
 
         #endregion

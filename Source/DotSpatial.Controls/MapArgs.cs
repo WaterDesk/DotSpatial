@@ -39,6 +39,11 @@ namespace DotSpatial.Controls
             _gpBB = g;
             _ptBuffer = new Dictionary<ulong, int>();
             _strBuffer = new Dictionary<ulong, int>();
+            LabelFormat = new StringFormat();
+            LabelFormat.Alignment = StringAlignment.Center;
+            LabelFormat.LineAlignment = StringAlignment.Near;
+
+            // 
         }
 
         #endregion
@@ -66,11 +71,26 @@ namespace DotSpatial.Controls
             return true;
         }
 
+        public bool AddPointLabel(int x, int y, int count)
+        {
+            List<ulong> list = new List<ulong>();
+            for(uint i = 0; i < (uint)count; i ++)
+            {
+                ulong key = (((ulong)(uint)((x / 16) + i)) << 32) | ((ulong)(uint)(y / 20));
+                if (_strBuffer.ContainsKey(key))
+                    return false;
+                list.Add(key);
+            }
+            for(int i = 0; i < list.Count; i ++)
+            {
+                _strBuffer[list[i]] = 0;
+            }
+            return true;
+        }
+
         public bool AddStringPos(int x, int y)
         {
-            x = x / 3;
-            y = y / 3;
-            ulong key = (((ulong)(uint)(x / 10)) << 32) | ((ulong)(uint)(y / 10));
+            ulong key = (((ulong)(uint)(x / 16)) << 32) | ((ulong)(uint)(y / 20));
             if (_strBuffer.ContainsKey(key))
             {
                 return false;
@@ -124,10 +144,24 @@ namespace DotSpatial.Controls
 
         public Graphics gpBF { get; set;}
 
+        public Font fontLabel {
+            get{
+                if(_font == null)
+                    _font = new Font("ËÎÌו", 16);
+                return _font;
+            }
+        }
+
+        public StringFormat LabelFormat{ get; set;}
+
+        private Font _font;
+
         private Dictionary<ulong, int> _ptBuffer;
         private Dictionary<ulong, int> _strBuffer;
 
         private Graphics _gpBB;
+
+
 
         #endregion
 

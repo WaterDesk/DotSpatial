@@ -159,6 +159,10 @@ namespace DotSpatial.Symbology
 
        #region Properties
 
+        public Brush LabelColorBrush{ get; set;}
+
+        public double LabelRatio{ get; set;}
+
         /// <summary>
         /// Gets the dictionary of extents that is calculated from the categories. This is calculated one time,
         /// when the scheme is applied, and then the cached value is used to help drawing symbols that
@@ -1715,6 +1719,9 @@ namespace DotSpatial.Symbology
         /// <param name="featureSet">The feature set.</param>
         private void Configure(IFeatureSet featureSet)
         {
+            LabelColorBrush = new SolidBrush(Color.Black);
+            LabelRatio = 0;
+
             _categoryExtents = new Dictionary<IFeatureCategory, Extent>();
             DrawingBounds = new Rectangle(-32000, -32000, 64000, 64000);
             Snappable = true;
