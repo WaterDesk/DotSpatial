@@ -170,7 +170,7 @@ namespace DotSpatial.Controls
             var symb = selected ? category.SelectionSymbolizer : category.Symbolizer;
 
             // Gets the features text and calculate the label size
-            string txt = category.CalculateExpression(f.DataRow, selected, f.Fid);
+            string txt = category.CalculateExpression(f.DataRow, selected, 0);
             if (txt == null) return;
 
             Func<SizeF> labelSize = () => g.MeasureString(txt, CacheList.GetFont(symb));
@@ -232,7 +232,7 @@ namespace DotSpatial.Controls
             var symb = selected ? category.SelectionSymbolizer : category.Symbolizer;
 
             // Gets the features text and calculate the label size
-            string txt = category.CalculateExpression(f.DataRow, selected, f.Fid);
+            string txt = category.CalculateExpression(f.DataRow, selected, 0);
             if (txt == null) return;
             var angle = GetAngleToRotate(symb, f);
             Func<SizeF> labelSize = () => g.MeasureString(txt, CacheList.GetFont(symb));
@@ -267,7 +267,7 @@ namespace DotSpatial.Controls
             var symb = selected ? category.SelectionSymbolizer : category.Symbolizer;
 
             // Gets the features text and calculate the label size
-            string txt = category.CalculateExpression(f.DataRow, selected, f.Fid);
+            string txt = category.CalculateExpression(f.DataRow, selected, 0);
             if (txt == null) return;
             var angle = GetAngleToRotate(symb, f);
             Func<SizeF> labelSize = () => g.MeasureString(txt, CacheList.GetFont(symb));
@@ -899,7 +899,7 @@ namespace DotSpatial.Controls
 
             // Sets the graphics objects smoothing modes
             g.TextRenderingHint = TextRenderingHint.AntiAlias;
-            g.SmoothingMode = SmoothingMode.AntiAlias;
+            g.SmoothingMode = SmoothingMode.HighSpeed;
 
             Action<int, IFeature> drawFeature;
             switch (FeatureSet.FeatureType)
@@ -992,7 +992,7 @@ namespace DotSpatial.Controls
 
             // Sets the graphics objects smoothing modes
             g.TextRenderingHint = TextRenderingHint.AntiAlias;
-            g.SmoothingMode = SmoothingMode.AntiAlias;
+            g.SmoothingMode = SmoothingMode.HighSpeed;
 
             Action<IFeature> drawFeature;
             switch (featureList.First().FeatureType)

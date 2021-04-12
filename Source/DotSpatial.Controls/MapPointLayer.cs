@@ -408,7 +408,7 @@ namespace DotSpatial.Controls
 
         private void Configure()
         {
-            ChunkSize = 50000;
+            ChunkSize = 500000;
         }
 
         // This draws the individual point features
