@@ -872,7 +872,7 @@ namespace DotSpatial.Controls
 
         private void Configure()
         {
-            ChunkSize = 10000;
+            ChunkSize = 100000;
         }
 
         /// <summary>
@@ -899,7 +899,7 @@ namespace DotSpatial.Controls
 
             // Sets the graphics objects smoothing modes
             g.TextRenderingHint = TextRenderingHint.AntiAlias;
-            g.SmoothingMode = SmoothingMode.HighSpeed;
+            g.SmoothingMode = SmoothingMode.AntiAlias;
 
             Action<int, IFeature> drawFeature;
             switch (FeatureSet.FeatureType)
@@ -992,7 +992,7 @@ namespace DotSpatial.Controls
 
             // Sets the graphics objects smoothing modes
             g.TextRenderingHint = TextRenderingHint.AntiAlias;
-            g.SmoothingMode = SmoothingMode.HighSpeed;
+            g.SmoothingMode = SmoothingMode.AntiAlias;
 
             Action<IFeature> drawFeature;
             switch (featureList.First().FeatureType)

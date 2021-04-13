@@ -499,7 +499,7 @@ namespace DotSpatial.Controls
 
         private void Configure()
         {
-            ChunkSize = 25000;
+            ChunkSize = 1000000;
             ProgressReportingEnabled = true;
         }
 

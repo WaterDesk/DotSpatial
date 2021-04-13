@@ -491,7 +491,7 @@ namespace DotSpatial.Controls
         private void Configure()
         {
             BufferRectangle = new Rectangle(0, 0, 3000, 3000);
-            ChunkSize = 500000;
+            ChunkSize = 1000000;
         }
 
         private void DrawFeatures(MapArgs e, IEnumerable<int> indices, bool selected)
