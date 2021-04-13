@@ -19,6 +19,12 @@ namespace DotSpatial.Controls
     /// </summary>
     public class MapPointLayer : PointLayer, IMapPointLayer
     {
+        #region Fields
+
+        private HashSet<ulong> _pointRenderCache = new HashSet<ulong>();
+
+        #endregion
+
         #region  Constructors
 
         /// <summary>
@@ -253,6 +259,8 @@ namespace DotSpatial.Controls
         /// <param name="selected">Indicates whether to draw the normal colored features or the selection colored features.</param>
         public virtual void DrawFeatures(MapArgs args, List<int> indices, List<Rectangle> clipRectangles, bool useChunks, bool selected)
         {
+            _pointRenderCache.Clear();
+
             if (!useChunks)
             {
                 DrawFeatures(args, indices, selected);
@@ -408,7 +416,7 @@ namespace DotSpatial.Controls
 
         private void Configure()
         {
-            ChunkSize = 500000;
+            ChunkSize = 1000000;
         }
 
         // This draws the individual point features
@@ -539,11 +547,30 @@ namespace DotSpatial.Controls
                 X = Convert.ToInt32((ptX - e.MinX) * e.Dx),
                 Y = Convert.ToInt32((e.MaxY - ptY) * e.Dy)
             };
+
+            if (!AddPointToRenderCache(pt.X, pt.Y))
+                return;
+
             double scaleSize = ps.GetScale(e);
             Matrix shift = origTransform.Clone();
             shift.Translate(pt.X, pt.Y);
             g.Transform = shift;
             ps.Draw(g, scaleSize);
+        }
+
+        /// <summary>
+        /// Try to add point to render cache
+        /// </summary>
+        /// <param name="x">X-Coordinate of the point, that should be drawn.</param>
+        /// <param name="y">Y-Coordinate of the point, that should be drawn.</param>
+        /// <returns>Boolean, true if the point is added to render cache, false if the point is already in render cache</returns>
+        private bool AddPointToRenderCache(int x, int y)
+        {
+            ulong key = (((ulong)(uint)(x / 3)) << 32) | (uint)(y / 3);
+            if (_pointRenderCache.Contains(key))
+                return false;
+
+            return _pointRenderCache.Add(key);
         }
 
         #endregion
