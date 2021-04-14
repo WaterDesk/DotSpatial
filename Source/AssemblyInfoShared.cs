@@ -3,5 +3,5 @@ using System.Reflection;
 
 [assembly: AssemblyCompany("DotSpatial Team")]
 [assembly: AssemblyVersion("2.0")]
-[assembly: AssemblyFileVersion("2.0")]
+[assembly: AssemblyFileVersion("2.0.1")]
 [assembly: AssemblyCopyright("Copyright © DotSpatial Team 2012-2017")]
