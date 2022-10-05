@@ -169,7 +169,7 @@ namespace DotSpatial.Controls
             var symb = selected ? category.SelectionSymbolizer : category.Symbolizer;
 
             // Gets the features text and calculate the label size
-            string txt = category.CalculateExpression(f.DataRow, selected, f.Fid);
+            string txt = category.CalculateExpression(f.DataRow, selected, 0);
             if (txt == null) return;
 
             Func<SizeF> labelSize = () => g.MeasureString(txt, CacheList.GetFont(symb));
@@ -231,7 +231,7 @@ namespace DotSpatial.Controls
             var symb = selected ? category.SelectionSymbolizer : category.Symbolizer;
 
             // Gets the features text and calculate the label size
-            string txt = category.CalculateExpression(f.DataRow, selected, f.Fid);
+            string txt = category.CalculateExpression(f.DataRow, selected, 0);
             if (txt == null) return;
             var angle = GetAngleToRotate(symb, f);
             Func<SizeF> labelSize = () => g.MeasureString(txt, CacheList.GetFont(symb));
@@ -266,7 +266,7 @@ namespace DotSpatial.Controls
             var symb = selected ? category.SelectionSymbolizer : category.Symbolizer;
 
             // Gets the features text and calculate the label size
-            string txt = category.CalculateExpression(f.DataRow, selected, f.Fid);
+            string txt = category.CalculateExpression(f.DataRow, selected, 0);
             if (txt == null) return;
             var angle = GetAngleToRotate(symb, f);
             Func<SizeF> labelSize = () => g.MeasureString(txt, CacheList.GetFont(symb));
