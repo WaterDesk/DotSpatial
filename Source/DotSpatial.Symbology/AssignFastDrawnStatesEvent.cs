@@ -57,12 +57,12 @@ namespace DotSpatial.Symbology
         public IFeatureSet DataSet { get; set; }
 
         /// <summary>
-        /// Gets or sets DrawnStates Data
+        /// Gets or sets an array of fast-drawn states
         /// </summary>
         public FastDrawnState[] DrawnStates { get; set; }
 
         /// <summary>
-        /// Gets or sets the list of categories
+        /// Gets or sets a list of feature categories
         /// </summary>
         public List<IFeatureCategory> Categories { get; set; }
 
