@@ -124,6 +124,12 @@ namespace DotSpatial.Symbology
         #endregion
 
         /// <summary>
+        /// Represents a delegate for handling events related to the assignment of fast-drawn states.
+        /// </summary>
+        /// <param name="drawEvent">An instance of AssignFastDrawnStatesEvent providing information about the event.</param>
+        public delegate void AssignFastDrawnStatesDelegate(AssignFastDrawnStatesEvent drawEvent);
+
+        /// <summary>
         /// This delegate is used for the selection functions.
         /// </summary>
         /// <param name="selection">Selection whose function is called.</param>
@@ -155,9 +161,14 @@ namespace DotSpatial.Symbology
         /// </summary>
         public event HandledEventHandler ViewAttributes;
 
+        /// <summary>
+        /// Event raised when fast-drawn states are being assigned, allowing subscribers to handle the event.
+        /// </summary>
+        public event AssignFastDrawnStatesDelegate OnAssignFastDrawnStatesEvent;
+
         #endregion
 
-       #region Properties
+        #region Properties
 
         /// <summary>
         /// Gets the dictionary of extents that is calculated from the categories. This is calculated one time,
@@ -528,104 +539,8 @@ namespace DotSpatial.Symbology
             Selection.Changed -= SelectedFeaturesChanged;
             Selection = new IndexSelection(this); // update the new drawn-states;
             Selection.Changed += SelectedFeaturesChanged;
-
-            // Fastest when no categories are used because we don't need DataTable at all
-            List<IFeatureCategory> categories = _scheme.GetCategories().ToList();
-            IFeatureCategory deflt = null;
-            if (categories.Count > 0 && categories[0].FilterExpression == null)
-            {
-                deflt = categories[0];
-            }
-
-            for (int i = 0; i < DataSet.ShapeIndices.Count; i++)
-            {
-                _drawnStates[i] = new FastDrawnState
-                {
-                    Category = deflt
-                };
-            }
-
-            if (categories.Count == 1 && categories[0].FilterExpression == null)
-            {
-                return;
-            }
-
-            bool containsFid = false;
-            if (!DataSet.AttributesPopulated)
-            {
-                // We don't want to read the table multiple times for each category. Just
-                // read a block and then do all the categories we can for that block.
-                var names = new List<string>();
-                foreach (var category in categories)
-                {
-                    var current = DistinctFieldsInExpression(category.FilterExpression);
-                    foreach (string name in current.Where(name => !names.Contains(name)))
-                    {
-                        names.Add(name);
-                    }
-                }
-
-                if (names.Count == 0)
-                {
-                    for (int i = 0; i < DataSet.NumRows(); i++)
-                    {
-                        _drawnStates[i].Category = categories[categories.Count - 1];
-                    }
-
-                    return;
-                }
-
-                int rowCount = DataSet.NumRows();
-                const int Size = 50000;
-                int numPages = (int)Math.Ceiling((double)rowCount / Size);
-                for (int page = 0; page < numPages; page++)
-                {
-                    int count = (page == numPages - 1) ? rowCount - (page * Size) : Size;
-                    DataTable expressionTable = DataSet.GetAttributes(page * Size, count, names);
-                    foreach (var category in categories)
-                    {
-                        DataRow[] res = expressionTable.Select(category.FilterExpression);
-                        foreach (DataRow r in res)
-                        {
-                            _drawnStates[(int)r["FID"]].Category = category;
-                        }
-                    }
-                }
-            }
-            else
-            {
-                DataTable table = DataSet.DataTable;
-                foreach (var category in categories)
-                {
-                    if (category.FilterExpression != null && category.FilterExpression.Contains("[FID]"))
-                    {
-                        containsFid = true;
-                    }
-                }
-
-                if (containsFid && table.Columns.Contains("FID") == false)
-                {
-                    table.Columns.Add("FID");
-                    for (int i = 0; i < table.Rows.Count; i++)
-                    {
-                        table.Rows[i]["FID"] = i;
-                    }
-                }
-
-                foreach (var category in categories)
-                {
-                    DataRow[] result = table.Select(category.FilterExpression);
-                    foreach (DataRow row in result)
-                    {
-                        _drawnStates[table.Rows.IndexOf(row)].Category = category;
-                    }
-                }
-
-                if (containsFid)
-                {
-                    table.Columns.Remove("FID");
-                }
-            }
+            AssignFastDrawnStatesEvent drawEvent = new AssignFastDrawnStatesEvent(this, _scheme, DataSet, _drawnStates);
+            CallAssignFastDrawnStates(drawEvent);
         }
 
         /// <summary>
@@ -1353,6 +1268,119 @@ namespace DotSpatial.Symbology
             }
 
             OnZoomToLayer(env);
+        }
+
+        /// <summary>
+        /// Calls to handle the event for assigning fast-drawn states. This method should be overridden in derived classes
+        /// to implement specific logic for assigning fast-drawn states.
+        /// </summary>
+        /// <param name="drawEvent">An object containing information about the event for assigning drawing states.</param>
+        protected virtual void CallAssignFastDrawnStates(AssignFastDrawnStatesEvent drawEvent)
+        {
+            // Fastest when no categories are used because we don't need DataTable at all
+            List<IFeatureCategory> categories = drawEvent.Categories;
+            IFeatureCategory deflt = null;
+            if (categories.Count > 0 && categories[0].FilterExpression == null)
+            {
+                deflt = categories[0];
+            }
+
+            for (int i = 0; i < drawEvent.DataSet.ShapeIndices.Count; i++)
+            {
+                drawEvent.DrawnStates[i] = new FastDrawnState
+                {
+                    Category = deflt
+                };
+            }
+
+            if (OnAssignFastDrawnStatesEvent != null)
+            {
+                OnAssignFastDrawnStatesEvent(drawEvent);
+                if (drawEvent.Handled)
+                    return;
+            }
+
+            if (categories.Count == 1 && categories[0].FilterExpression == null)
+            {
+                return;
+            }
+
+            bool containsFid = false;
+            if (!drawEvent.DataSet.AttributesPopulated)
+            {
+                // We don't want to read the table multiple times for each category. Just
+                // read a block and then do all the categories we can for that block.
+                var names = new List<string>();
+                foreach (var category in categories)
+                {
+                    var current = DistinctFieldsInExpression(category.FilterExpression);
+                    foreach (string name in current.Where(name => !names.Contains(name)))
+                    {
+                        names.Add(name);
+                    }
+                }
+
+                if (names.Count == 0)
+                {
+                    for (int i = 0; i < drawEvent.DataSet.NumRows(); i++)
+                    {
+                        drawEvent.DrawnStates[i].Category = categories[categories.Count - 1];
+                    }
+
+                    return;
+                }
+
+                int rowCount = drawEvent.DataSet.NumRows();
+                const int Size = 50000;
+                int numPages = (int)Math.Ceiling((double)rowCount / Size);
+                for (int page = 0; page < numPages; page++)
+                {
+                    int count = (page == numPages - 1) ? rowCount - (page * Size) : Size;
+                    DataTable expressionTable = drawEvent.DataSet.GetAttributes(page * Size, count, names);
+                    foreach (var category in categories)
+                    {
+                        DataRow[] res = expressionTable.Select(category.FilterExpression);
+                        foreach (DataRow r in res)
+                        {
+                            drawEvent.DrawnStates[(int)r["FID"]].Category = category;
+                        }
+                    }
+                }
+            }
+            else
+            {
+                DataTable table = drawEvent.DataSet.DataTable;
+                foreach (var category in categories)
+                {
+                    if (category.FilterExpression != null && category.FilterExpression.Contains("[FID]"))
+                    {
+                        containsFid = true;
+                    }
+                }
+
+                if (containsFid && table.Columns.Contains("FID") == false)
+                {
+                    table.Columns.Add("FID");
+                    for (int i = 0; i < table.Rows.Count; i++)
+                    {
+                        table.Rows[i]["FID"] = i;
+                    }
+                }
+
+                foreach (var category in categories)
+                {
+                    DataRow[] result = table.Select(category.FilterExpression);
+                    foreach (DataRow row in result)
+                    {
+                        drawEvent.DrawnStates[table.Rows.IndexOf(row)].Category = category;
+                    }
+                }
+
+                if (containsFid)
+                {
+                    table.Columns.Remove("FID");
+                }
+            }
         }
 
         /// <summary>
