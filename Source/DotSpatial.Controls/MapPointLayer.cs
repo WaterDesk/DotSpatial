@@ -468,22 +468,36 @@ namespace DotSpatial.Controls
             else
             {
                 FastDrawnState[] states = new FastDrawnState[DrawnStates.Length];
-                for (int i = 0; i < DrawnStates.Length; i++)
+                if (OnDrawFeaturesEvent != null)
                 {
-                    var state = new FastDrawnState(DrawnStates[i].Selected, DrawnStates[i].Category);
-                    state.Visible = DrawnStates[i].Visible;
-                    states[i] = state;
+                    for (int i = 0; i < DrawnStates.Length; i++)
+                    {
+                        var state = new FastDrawnState(DrawnStates[i].Selected, DrawnStates[i].Category);
+                        state.Visible = DrawnStates[i].Visible;
+                        states[i] = state;
+                    }
+                }
+                else
+                {
+                    states = DrawnStates;
                 }
 
                 var indexList = indices as IList<int> ?? indices.ToList();
                 if (indexList.Max() >= states.Length)
                 {
                     AssignFastDrawnStates();
-                    for (int i = 0; i < DrawnStates.Length; i++)
+                    if (OnDrawFeaturesEvent != null)
                     {
-                        var state = new FastDrawnState(DrawnStates[i].Selected, DrawnStates[i].Category);
-                        state.Visible = DrawnStates[i].Visible;
-                        states[i] = state;
+                        for (int i = 0; i < DrawnStates.Length; i++)
+                        {
+                            var state = new FastDrawnState(DrawnStates[i].Selected, DrawnStates[i].Category);
+                            state.Visible = DrawnStates[i].Visible;
+                            states[i] = state;
+                        }
+                    }
+                    else
+                    {
+                        states = DrawnStates;
                     }
                 }
 
