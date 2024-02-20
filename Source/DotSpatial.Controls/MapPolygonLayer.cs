@@ -68,6 +68,13 @@ namespace DotSpatial.Controls
 
         #endregion
 
+        /// <summary>
+        /// Delegate for drawing features on a map.
+        /// </summary>
+        /// <param name="dataSet">The feature set containing the features to draw.</param>
+        /// <param name="drawnStates">An array of FastDrawnState objects representing the drawn states of the features.</param>
+        public delegate void DrawFeaturesDelegate(IFeatureSet dataSet, FastDrawnState[] drawnStates);
+
         #region Events
 
         /// <summary>
@@ -75,6 +82,11 @@ namespace DotSpatial.Controls
         /// redraw the specified clip
         /// </summary>
         public event EventHandler<ClipArgs> BufferChanged;
+
+        /// <summary>
+        /// Event raised when features are drawn on a map.
+        /// </summary>
+        public event DrawFeaturesDelegate OnDrawFeaturesEvent;
 
         #endregion
 
@@ -407,14 +419,31 @@ namespace DotSpatial.Controls
             paths = new Dictionary<FastDrawnState, GraphicsPath>();
 
             var indiceList = indices as IList<int> ?? indices.ToList();
-            FastDrawnState[] states = DrawnStatesNeeded ? DrawnStates : new FastDrawnState[0];
+
+            FastDrawnState[] states = new FastDrawnState[0];
+            if (DrawnStatesNeeded)
+            {
+                states = new FastDrawnState[DrawnStates.Length];
+                for (int i = 0; i < DrawnStates.Length; i++)
+                {
+                    states[i] = new FastDrawnState(DrawnStates[i].Selected, DrawnStates[i].Category);
+                    states[i].Visible = DrawnStates[i].Visible;
+                }
+            }
+
             if (DrawnStatesNeeded && indiceList.Max() >= states.Length)
             {
                 AssignFastDrawnStates();
-                states = DrawnStates;
+                for (int i = 0; i < DrawnStates.Length; i++)
+                {
+                    states[i] = new FastDrawnState(DrawnStates[i].Selected, DrawnStates[i].Category);
+                    states[i].Visible = DrawnStates[i].Visible;
+                }
             }
 
             if (selected && (!DrawnStatesNeeded || !DrawnStates.Any(_ => _.Selected))) return;
+
+            OnDrawFeaturesEvent?.Invoke(DataSet, states);
 
             if (ProgressReportingEnabled)
             {

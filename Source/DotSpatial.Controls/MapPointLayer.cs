@@ -77,12 +77,24 @@ namespace DotSpatial.Controls
 
         #endregion
 
+        /// <summary>
+        /// Delegate for drawing features on a map.
+        /// </summary>
+        /// <param name="dataSet">The feature set containing the features to draw.</param>
+        /// <param name="drawnStates">An array of FastDrawnState objects representing the drawn states of the features.</param>
+        public delegate void DrawFeaturesDelegate(IFeatureSet dataSet, FastDrawnState[] drawnStates);
+
         #region Events
 
         /// <summary>
         /// Occurs when drawing content has changed on the buffer for this layer
         /// </summary>
         public event EventHandler<ClipArgs> BufferChanged;
+
+        /// <summary>
+        /// Event raised when features are drawn on a map.
+        /// </summary>
+        public event DrawFeaturesDelegate OnDrawFeaturesEvent;
 
         #endregion
 
@@ -455,14 +467,27 @@ namespace DotSpatial.Controls
             }
             else
             {
-                FastDrawnState[] states = DrawnStates;
+                FastDrawnState[] states = new FastDrawnState[DrawnStates.Length];
+                for (int i = 0; i < DrawnStates.Length; i++)
+                {
+                    var state = new FastDrawnState(DrawnStates[i].Selected, DrawnStates[i].Category);
+                    state.Visible = DrawnStates[i].Visible;
+                    states[i] = state;
+                }
 
                 var indexList = indices as IList<int> ?? indices.ToList();
                 if (indexList.Max() >= states.Length)
                 {
                     AssignFastDrawnStates();
-                    states = DrawnStates;
+                    for (int i = 0; i < DrawnStates.Length; i++)
+                    {
+                        var state = new FastDrawnState(DrawnStates[i].Selected, DrawnStates[i].Category);
+                        state.Visible = DrawnStates[i].Visible;
+                        states[i] = state;
+                    }
                 }
+
+                OnDrawFeaturesEvent?.Invoke(DataSet, states);
 
                 double[] vertices = DataSet.Vertex;
 

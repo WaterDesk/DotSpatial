@@ -69,6 +69,13 @@ namespace DotSpatial.Controls
 
         #endregion
 
+        /// <summary>
+        /// Delegate for drawing features on a map.
+        /// </summary>
+        /// <param name="dataSet">The feature set containing the features to draw.</param>
+        /// <param name="drawnStates">An array of FastDrawnState objects representing the drawn states of the features.</param>
+        public delegate void DrawFeaturesDelegate(IFeatureSet dataSet, FastDrawnState[] drawnStates);
+
         #region Events
 
         /// <summary>
@@ -76,6 +83,11 @@ namespace DotSpatial.Controls
         /// redraw the specified clip
         /// </summary>
         public event EventHandler<ClipArgs> BufferChanged;
+
+        /// <summary>
+        /// Event raised when features are drawn on a map.
+        /// </summary>
+        public event DrawFeaturesDelegate OnDrawFeaturesEvent;
 
         #endregion
 
@@ -512,15 +524,28 @@ namespace DotSpatial.Controls
 
             if (DrawnStatesNeeded)
             {
-                FastDrawnState[] states = DrawnStates;
+                FastDrawnState[] states = new FastDrawnState[DrawnStates.Length];
+                for (int i = 0; i < DrawnStates.Length; i++)
+                {
+                    var state = new FastDrawnState(DrawnStates[i].Selected, DrawnStates[i].Category);
+                    state.Visible = DrawnStates[i].Visible;
+                    states[i] = state;
+                }
 
                 if (indiceList.Max() >= states.Length)
                 {
                     AssignFastDrawnStates();
-                    states = DrawnStates;
+                    for (int i = 0; i < DrawnStates.Length; i++)
+                    {
+                        var state = new FastDrawnState(DrawnStates[i].Selected, DrawnStates[i].Category);
+                        state.Visible = DrawnStates[i].Visible;
+                        states[i] = state;
+                    }
                 }
 
                 if (selected && !states.Any(_ => _.Selected)) return;
+
+                OnDrawFeaturesEvent?.Invoke(DataSet, states);
 
                 foreach (ILineCategory category in Symbology.Categories)
                 {
