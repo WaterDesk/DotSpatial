@@ -1208,6 +1208,18 @@ namespace DotSpatial.Symbology
             }
         }
 
+        public FastDrawnState[] DeepCopyDrawnStates()
+        {
+            FastDrawnState[] states = new FastDrawnState[DrawnStates.Length];
+            for (int i = 0; i < DrawnStates.Length; i++)
+            {
+                states[i] = new FastDrawnState(DrawnStates[i].Selected, DrawnStates[i].Category);
+                states[i].Visible = DrawnStates[i].Visible;
+            }
+
+            return states;
+        }
+
         /// <summary>
         /// Un-highlights or returns the features from the specified region. The specified selectionMode
         /// will be used to determine how to choose features.

@@ -424,35 +424,13 @@ namespace DotSpatial.Controls
             if (DrawnStatesNeeded)
             {
                 states = new FastDrawnState[DrawnStates.Length];
-                if (OnDrawFeaturesEvent != null)
-                {
-                    for (int i = 0; i < DrawnStates.Length; i++)
-                    {
-                        states[i] = new FastDrawnState(DrawnStates[i].Selected, DrawnStates[i].Category);
-                        states[i].Visible = DrawnStates[i].Visible;
-                    }
-                }
-                else
-                {
-                    states = DrawnStates;
-                }
+                states = OnDrawFeaturesEvent != null ? DeepCopyDrawnStates() : DrawnStates;
             }
 
             if (DrawnStatesNeeded && indiceList.Max() >= states.Length)
             {
                 AssignFastDrawnStates();
-                if (OnDrawFeaturesEvent != null)
-                {
-                    for (int i = 0; i < DrawnStates.Length; i++)
-                    {
-                        states[i] = new FastDrawnState(DrawnStates[i].Selected, DrawnStates[i].Category);
-                        states[i].Visible = DrawnStates[i].Visible;
-                    }
-                }
-                else
-                {
-                    states = DrawnStates;
-                }
+                states = OnDrawFeaturesEvent != null ? DeepCopyDrawnStates() : DrawnStates;
             }
 
             if (selected && (!DrawnStatesNeeded || !DrawnStates.Any(_ => _.Selected))) return;
