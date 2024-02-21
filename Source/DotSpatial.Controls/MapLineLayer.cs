@@ -77,6 +77,11 @@ namespace DotSpatial.Controls
         /// </summary>
         public event EventHandler<ClipArgs> BufferChanged;
 
+        /// <summary>
+        /// Event raised when features are drawn on a map.
+        /// </summary>
+        public event DrawFeaturesDelegate OnDrawFeaturesEvent;
+
         #endregion
 
         #region Properties
@@ -512,15 +517,17 @@ namespace DotSpatial.Controls
 
             if (DrawnStatesNeeded)
             {
-                FastDrawnState[] states = DrawnStates;
+                FastDrawnState[] states = OnDrawFeaturesEvent != null ? CopyDrawnStates() : DrawnStates;
 
                 if (indiceList.Max() >= states.Length)
                 {
                     AssignFastDrawnStates();
-                    states = DrawnStates;
+                    states = OnDrawFeaturesEvent != null ? CopyDrawnStates() : DrawnStates;
                 }
 
                 if (selected && !states.Any(_ => _.Selected)) return;
+
+                OnDrawFeaturesEvent?.Invoke(DataSet, states);
 
                 foreach (ILineCategory category in Symbology.Categories)
                 {

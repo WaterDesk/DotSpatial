@@ -130,6 +130,13 @@ namespace DotSpatial.Symbology
         public delegate void AssignFastDrawnStatesDelegate(AssignFastDrawnStatesEvent drawEvent);
 
         /// <summary>
+        /// Delegate for drawing features on a map.
+        /// </summary>
+        /// <param name="dataSet">The feature set containing the features to draw.</param>
+        /// <param name="drawnStates">An array of FastDrawnState objects representing the drawn states of the features.</param>
+        public delegate void DrawFeaturesDelegate(IFeatureSet dataSet, FastDrawnState[] drawnStates);
+
+        /// <summary>
         /// This delegate is used for the selection functions.
         /// </summary>
         /// <param name="selection">Selection whose function is called.</param>
@@ -1206,6 +1213,22 @@ namespace DotSpatial.Symbology
                 IIndexSelection sel = Selection as IIndexSelection;
                 sel?.Remove(DataSet.Features.IndexOf(feature));
             }
+        }
+
+        /// <summary>
+        /// Performs a deep copy of the DrawnStates array.
+        /// </summary>
+        /// <returns>A deep copy of the DrawnStates array.</returns>
+        public FastDrawnState[] CopyDrawnStates()
+        {
+            FastDrawnState[] states = new FastDrawnState[DrawnStates.Length];
+            for (int i = 0; i < DrawnStates.Length; i++)
+            {
+                states[i] = new FastDrawnState(DrawnStates[i].Selected, DrawnStates[i].Category);
+                states[i].Visible = DrawnStates[i].Visible;
+            }
+
+            return states;
         }
 
         /// <summary>

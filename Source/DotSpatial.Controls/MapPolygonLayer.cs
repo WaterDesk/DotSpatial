@@ -76,6 +76,11 @@ namespace DotSpatial.Controls
         /// </summary>
         public event EventHandler<ClipArgs> BufferChanged;
 
+        /// <summary>
+        /// Event raised when features are drawn on a map.
+        /// </summary>
+        public event DrawFeaturesDelegate OnDrawFeaturesEvent;
+
         #endregion
 
         #region Properties
@@ -407,14 +412,20 @@ namespace DotSpatial.Controls
             paths = new Dictionary<FastDrawnState, GraphicsPath>();
 
             var indiceList = indices as IList<int> ?? indices.ToList();
-            FastDrawnState[] states = DrawnStatesNeeded ? DrawnStates : new FastDrawnState[0];
+
+            FastDrawnState[] states = new FastDrawnState[0];
+            if (DrawnStatesNeeded)
+                states = OnDrawFeaturesEvent != null ? CopyDrawnStates() : DrawnStates;
+
             if (DrawnStatesNeeded && indiceList.Max() >= states.Length)
             {
                 AssignFastDrawnStates();
-                states = DrawnStates;
+                states = OnDrawFeaturesEvent != null ? CopyDrawnStates() : DrawnStates;
             }
 
             if (selected && (!DrawnStatesNeeded || !DrawnStates.Any(_ => _.Selected))) return;
+
+            OnDrawFeaturesEvent?.Invoke(DataSet, states);
 
             if (ProgressReportingEnabled)
             {
