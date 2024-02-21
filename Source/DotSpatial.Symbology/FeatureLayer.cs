@@ -1219,7 +1219,7 @@ namespace DotSpatial.Symbology
         /// Performs a deep copy of the DrawnStates array.
         /// </summary>
         /// <returns>A deep copy of the DrawnStates array.</returns>
-        public FastDrawnState[] DeepCopyDrawnStates()
+        public FastDrawnState[] CopyDrawnStates()
         {
             FastDrawnState[] states = new FastDrawnState[DrawnStates.Length];
             for (int i = 0; i < DrawnStates.Length; i++)

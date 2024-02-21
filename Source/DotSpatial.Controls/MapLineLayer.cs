@@ -69,13 +69,6 @@ namespace DotSpatial.Controls
 
         #endregion
 
-        /// <summary>
-        /// Delegate for drawing features on a map.
-        /// </summary>
-        /// <param name="dataSet">The feature set containing the features to draw.</param>
-        /// <param name="drawnStates">An array of FastDrawnState objects representing the drawn states of the features.</param>
-        public delegate void DrawFeaturesDelegate(IFeatureSet dataSet, FastDrawnState[] drawnStates);
-
         #region Events
 
         /// <summary>
@@ -524,12 +517,12 @@ namespace DotSpatial.Controls
 
             if (DrawnStatesNeeded)
             {
-                FastDrawnState[] states = OnDrawFeaturesEvent != null ? DeepCopyDrawnStates() : DrawnStates;
+                FastDrawnState[] states = OnDrawFeaturesEvent != null ? CopyDrawnStates() : DrawnStates;
 
                 if (indiceList.Max() >= states.Length)
                 {
                     AssignFastDrawnStates();
-                    states = OnDrawFeaturesEvent != null ? DeepCopyDrawnStates() : DrawnStates;
+                    states = OnDrawFeaturesEvent != null ? CopyDrawnStates() : DrawnStates;
                 }
 
                 if (selected && !states.Any(_ => _.Selected)) return;
