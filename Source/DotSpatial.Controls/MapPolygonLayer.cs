@@ -422,10 +422,7 @@ namespace DotSpatial.Controls
 
             FastDrawnState[] states = new FastDrawnState[0];
             if (DrawnStatesNeeded)
-            {
-                states = new FastDrawnState[DrawnStates.Length];
                 states = OnDrawFeaturesEvent != null ? DeepCopyDrawnStates() : DrawnStates;
-            }
 
             if (DrawnStatesNeeded && indiceList.Max() >= states.Length)
             {
