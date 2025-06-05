@@ -1051,7 +1051,7 @@ namespace DotSpatial.Controls
 
                 for (int i = 0; i < catFeatures.Count; i++)
                 {
-                    if (!FeatureLayer.DrawnStates[i].Visible) continue;
+                    if (!FeatureLayer.DrawnStates[FeatureLayer.DataSet.DataTable.Rows.IndexOf(catFeatures[i].DataRow)].Visible) continue;
                     drawFeature(catFeatures[i]);
                 }
             }
