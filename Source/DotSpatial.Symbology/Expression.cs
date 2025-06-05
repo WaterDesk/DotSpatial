@@ -664,7 +664,14 @@ namespace DotSpatial.Symbology
                     return false;
                 }
 
-                elRight.CalcValue.Dbl = -valRight.Dbl;
+                if (double.IsNaN(valRight.Dbl))
+                {
+                    elRight.CalcValue.Dbl = 0.0;
+                }
+                else
+                {
+                    elRight.CalcValue.Dbl = -valRight.Dbl;
+                }
                 elRight.CalcValue.Type = TkValueType.VtDouble;
                 elRight.WasCalculated = true;
                 part.Elements[operation.Id].TurnedOff = true;
@@ -684,6 +691,8 @@ namespace DotSpatial.Symbology
                 {
                     if (valLeft.Type == TkValueType.VtDouble)
                     {
+                        if (double.IsNaN(valLeft.Dbl)) valLeft.Dbl = 0.0;
+                        if (double.IsNaN(valRight.Dbl)) valRight.Dbl = 0.0;
                         CalculateDoubleOperation(oper, elLeft, valLeft, valRight);
                     }
                     else if (valLeft.Type == TkValueType.VtString)
@@ -1470,8 +1479,18 @@ namespace DotSpatial.Symbology
                 }
                 else if (Value.Type == TkValueType.VtDouble)
                 {
-                    if (value is short || value is ushort || value is int || value is uint || value is long || value is ulong || value is float || value is double || value is decimal) Value.Dbl = Convert.ToDouble(value);
-                    else return false;
+                    if (value == null || value == DBNull.Value)
+                    {
+                        Value.Dbl = double.NaN;
+                    }
+                    else if (value is short || value is ushort || value is int || value is uint || value is long || value is ulong || value is float || value is double || value is decimal)
+                    {
+                        Value.Dbl = Convert.ToDouble(value);
+                    }
+                    else
+                    {
+                        return false;
+                    }
                 }
                 else if (Value.Type == TkValueType.VtObject)
                 {
@@ -1558,7 +1577,10 @@ namespace DotSpatial.Symbology
                         if (Obj == null || Obj == DBNull.Value) return null;
 
                         return Obj.ToString();
-                    case TkValueType.VtDouble: return Dbl.ToString(_floatingFormat);
+                    case TkValueType.VtDouble:
+                        if (double.IsNaN(Dbl)) return string.Empty;
+
+                        return Dbl.ToString(_floatingFormat);
                     case TkValueType.VtBoolean: return Bln.ToString();
                     default: return null;
                 }
